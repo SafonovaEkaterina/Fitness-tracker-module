@@ -1,5 +1,6 @@
 from dataclasses import asdict, dataclass
 from typing import ClassVar, Dict, List, Type, Union
+from exceptions import WorkTypeDoesNotExistError
 
 
 @dataclass
@@ -99,7 +100,7 @@ class SportsWalking(Training):
         """Получить количество затраченных калорий."""
         return ((self.COEFF_CALORIES_1 * self.weight
                 + (self.get_mean_speed() ** self.COEFF_CALORIES_2
-                   // self.height)
+                   / self.height)
                 * self.COEFF_CALORIES_3 * self.weight)
                 * self.MIN_IN_HOUR * self.duration)
 
@@ -134,16 +135,17 @@ class Swimming(Training):
                 * self.COEFF_CALORIES_2 * self.weight)
 
 
-def read_package(workout_type: str, data: List[Union[int, int]]) -> Training:
+def read_package(workout_type: str, data: List[Union[int, float]]) -> Type[Training]:
     """Прочитать данные полученные от датчиков."""
     workout: Dict[str, Type[Training]] = {
         'SWM': Swimming,
         'RUN': Running,
         'WLK': SportsWalking
     }
-    if workout_type not in workout:
-        raise KeyError(f'Тренировка {workout_type} не найдена')
-    return workout[workout_type](*data)
+    try:
+        return workout[workout_type](*data)
+    except KeyError:
+        raise WorkTypeDoesNotExistError('Код тренировки отсутствует')
 
 
 def main(training: Type[Training]) -> None:
