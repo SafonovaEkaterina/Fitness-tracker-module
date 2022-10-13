@@ -135,7 +135,10 @@ class Swimming(Training):
                 * self.COEFF_CALORIES_2 * self.weight)
 
 
-def read_package(workout_type: str, data: List[Union[int, float]]) -> Type[Training]:
+def read_package(
+    workout_type: str,
+    data: List[Union[int, float]]
+)-> Type[Training]:
     """Прочитать данные полученные от датчиков."""
     workout: Dict[str, Type[Training]] = {
         'SWM': Swimming,
