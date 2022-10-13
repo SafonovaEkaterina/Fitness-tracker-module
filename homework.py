@@ -1,5 +1,5 @@
 from dataclasses import asdict, dataclass
-from typing import ClassVar, Dict, List, Type
+from typing import ClassVar, Dict, List, Type, Union
 
 
 @dataclass
@@ -11,11 +11,6 @@ class InfoMessage:
     distance: float
     speed: float
     calories: float
-# Привет! Приятно познакомиться:) У меня возник вопрос,
-# на который я не нашла ответ.
-# Так и не дошло, почему пришлось убрать __init__.
-# Есть идея, что это из-за asdict,
-# так как он использует указатель на экземпляр.
 
     MESSAGE: ClassVar[str] = (
         'Тип тренировки: {training_type}; '
@@ -27,7 +22,6 @@ class InfoMessage:
 
     def get_message(self) -> str:
         """Метод возвращает строку сообщения."""
-
         return self.MESSAGE.format(**asdict(self))
 
 
@@ -50,22 +44,18 @@ class Training:
 
     def get_distance(self) -> float:
         """Получить дистанцию в км."""
-
         return self.action * self.LEN_STEP / self.M_IN_KM
 
     def get_mean_speed(self) -> float:
         """Получить среднюю скорость движения."""
-
         return self.get_distance() / self.duration
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
-
         raise NotImplementedError
 
     def show_training_info(self) -> InfoMessage:
         """Вернуть информационное сообщение о выполненной тренировке."""
-
         return InfoMessage(
             self.__class__.__name__,
             self.duration,
@@ -83,7 +73,6 @@ class Running(Training):
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
-
         return ((self.COEFF_CALORIES_1 * self.get_mean_speed()
                  - self.COEFF_CALORIES_2) * self.weight
                 / self.M_IN_KM * self.duration * self.MIN_IN_HOUR)
@@ -108,7 +97,6 @@ class SportsWalking(Training):
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
-
         return ((self.COEFF_CALORIES_1 * self.weight
                 + (self.get_mean_speed() ** self.COEFF_CALORIES_2
                    // self.height)
@@ -131,26 +119,23 @@ class Swimming(Training):
         length_pool: float,
         count_pool: float
     ) -> None:
+        super().__init__(action, duration, weight)
         self.length_pool = length_pool
         self.count_pool = count_pool
-        super().__init__(action, duration, weight)
 
     def get_mean_speed(self) -> float:
         """Получить среднюю скорость движения."""
-
         return (self.length_pool * self.count_pool
                 / self.M_IN_KM / self.duration)
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий."""
-
         return ((self.get_mean_speed() + self.COEFF_CALORIES_1)
                 * self.COEFF_CALORIES_2 * self.weight)
 
 
-def read_package(workout_type: str, data: List[int]) -> Training:
+def read_package(workout_type: str, data: List[Union[int, int]]) -> Training:
     """Прочитать данные полученные от датчиков."""
-
     workout: Dict[str, Type[Training]] = {
         'SWM': Swimming,
         'RUN': Running,
@@ -161,12 +146,8 @@ def read_package(workout_type: str, data: List[int]) -> Training:
     return workout[workout_type](*data)
 
 
-def main(training: Training) -> None:
+def main(training: Type[Training]) -> None:
     """Главная функция."""
-# Вопросик и тут возник. Если изменить аннотацию
-# на Type[Training] это повлечет изменения в коде ниже.
-# Будет необходим указатель на экземпляр.
-
     info = training.show_training_info()
     print(info.get_message())
 
